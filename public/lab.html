@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>意識疎通実験室</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Courier New', Courier, monospace;
+      background: #080810;
+      color: #b8ccd8;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      padding: 10px 20px;
+      border-bottom: 1px solid #1a2a3a;
+      background: #0b0b16;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+
+    header h1 {
+      font-size: 12px;
+      color: #5a9fdf;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    header .subtitle {
+      font-size: 10px;
+      color: #3a5a7a;
+      letter-spacing: 1px;
+    }
+
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ─── Left pane ─── */
+    .left {
+      width: 220px;
+      flex-shrink: 0;
+      border-right: 1px solid #1a2a3a;
+      padding: 14px;
+      overflow-y: auto;
+      background: #0a0a14;
+    }
+
+    /* ─── Center pane ─── */
+    .center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .center-header {
+      padding: 8px 14px;
+      border-bottom: 1px solid #1a2a3a;
+      font-size: 10px;
+      color: #3a6a8a;
+      letter-spacing: 1px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .dialogue {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      min-height: 0;
+    }
+
+    .dialogue-empty {
+      color: #2a4a5a;
+      font-size: 11px;
+      text-align: center;
+      padding-top: 60px;
+      letter-spacing: 1px;
+    }
+
+    /* ─── Right pane ─── */
+    .right {
+      width: 260px;
+      flex-shrink: 0;
+      border-left: 1px solid #1a2a3a;
+      padding: 14px;
+      overflow-y: auto;
+      background: #0a0a14;
+    }
+
+    .pane-title {
+      font-size: 10px;
+      color: #3a6a8a;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #1a2a3a;
+    }
+
+    .section-gap { margin-top: 18px; }
+
+    /* ─── Preset buttons ─── */
+    .presets {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+      margin-bottom: 14px;
+    }
+
+    .preset-btn {
+      padding: 7px 6px 6px;
+      background: #111120;
+      border: 1px solid #243040;
+      color: #7aa8c8;
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      border-radius: 3px;
+      text-align: center;
+      line-height: 1.3;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .preset-btn small {
+      display: block;
+      font-size: 9px;
+      color: #3a5a6a;
+      margin-top: 1px;
+    }
+
+    .preset-btn:hover:not(:disabled) { border-color: #3a6a9a; color: #9ac8e8; }
+
+    .preset-btn.active {
+      border-color: #5a9fdf;
+      color: #5a9fdf;
+      background: #0f1e30;
+    }
+
+    /* ─── Sliders ─── */
+    .slider-group { margin-bottom: 10px; }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #5a7a8a;
+      margin-bottom: 3px;
+    }
+
+    .slider-label span:last-child { color: #8ab8d8; }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #3a8adf;
+      cursor: pointer;
+      height: 14px;
+    }
+
+    input[type="range"]:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    /* ─── Turn count ─── */
+    .turn-row {
+      margin-bottom: 14px;
+    }
+
+    /* ─── Start button ─── */
+    #startBtn {
+      width: 100%;
+      padding: 9px;
+      background: #0f2a40;
+      border: 1px solid #3a7aaa;
+      color: #5a9fdf;
+      font-family: inherit;
+      font-size: 12px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    #startBtn:hover:not(:disabled) { background: #183650; color: #7abcf0; }
+
+    #startBtn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* ─── Messages ─── */
+    .msg {
+      margin-bottom: 12px;
+    }
+
+    .msg-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      margin-bottom: 3px;
+    }
+
+    .msg-seeker .msg-label { color: #4a8fdf; }
+    .msg-role .msg-label   { color: #df8a4a; }
+
+    .msg-content {
+      background: #0d1520;
+      border-left: 2px solid;
+      padding: 8px 11px;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border-radius: 0 3px 3px 0;
+    }
+
+    .msg-seeker .msg-content { border-color: #1e4a7a; }
+    .msg-role .msg-content   { border-color: #7a4a1e; }
+
+    .thinking {
+      color: #3a5a6a;
+      font-style: italic;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.3; }
+      50%       { opacity: 1;   }
+    }
+
+    /* ─── Score cards ─── */
+    .score-card {
+      background: #0d1520;
+      border: 1px solid #1a3040;
+      border-radius: 4px;
+      padding: 11px;
+      margin-bottom: 10px;
+    }
+
+    .score-card-title {
+      font-size: 9px;
+      color: #3a6a8a;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+
+    .score-name { font-size: 11px; color: #6a8a9a; }
+
+    .score-val {
+      font-size: 18px;
+      font-weight: bold;
+      color: #8ac8f0;
+      font-family: monospace;
+      min-width: 52px;
+      text-align: right;
+    }
+
+    .score-bar {
+      height: 2px;
+      background: #1a2a3a;
+      border-radius: 1px;
+      margin-bottom: 9px;
+      overflow: hidden;
+    }
+
+    .score-bar-fill {
+      height: 100%;
+      background: #3a8adf;
+      border-radius: 1px;
+      transition: width 0.6s ease;
+    }
+
+    /* ─── Verdict ─── */
+    .verdict-wrap { margin-top: 10px; }
+
+    .verdict-label {
+      font-size: 9px;
+      color: #3a7a5a;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+    }
+
+    .verdict-box {
+      background: #0a1a14;
+      border: 1px solid #1a4030;
+      border-radius: 3px;
+      padding: 9px 11px;
+      font-size: 11px;
+      color: #7abaa0;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    /* ─── History ─── */
+    .history-item {
+      background: #0d1520;
+      border: 1px solid #1a2a36;
+      border-radius: 3px;
+      padding: 7px 9px;
+      margin-bottom: 7px;
+      font-size: 10px;
+    }
+
+    .history-preset {
+      color: #5a8aaa;
+      margin-bottom: 4px;
+    }
+
+    .history-scores {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .history-score { color: #7aaac0; }
+
+    .history-empty {
+      color: #2a4a5a;
+      font-size: 10px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    /* ─── Error ─── */
+    .error-msg {
+      color: #df6a6a;
+      font-size: 11px;
+      padding: 8px 11px;
+      background: #200a0a;
+      border: 1px solid #4a1a1a;
+      border-radius: 3px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>意識疎通実験室</h1>
+  <span class="subtitle">CONSCIOUSNESS COMMUNICATION LAB</span>
+</header>
+
+<div class="main">
+
+  <!-- ═══ LEFT: Gene controls ═══ -->
+  <div class="left">
+    <div class="pane-title">役割AIの遺伝子</div>
+
+    <div class="presets">
+      <button class="preset-btn active" data-preset="cold">
+        Cold<small>低温冷淡</small>
+      </button>
+      <button class="preset-btn" data-preset="hot">
+        Hot<small>高温混沌</small>
+      </button>
+      <button class="preset-btn" data-preset="silent">
+        Silent<small>最小語数</small>
+      </button>
+      <button class="preset-btn" data-preset="verbose">
+        Verbose<small>最大語数</small>
+      </button>
+      <button class="preset-btn" data-preset="narrow">
+        Narrow<small>語彙固定</small>
+      </button>
+      <button class="preset-btn" data-preset="custom">
+        Custom<small>手動設定</small>
+      </button>
+    </div>
+
+    <div id="customSliders" style="display:none;">
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>temperature</span>
+          <span id="tempVal">0.70</span>
+        </div>
+        <input type="range" id="tempSlider" min="0" max="100" value="70" step="1">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>top_p</span>
+          <span id="topPVal">0.90</span>
+        </div>
+        <input type="range" id="topPSlider" min="1" max="100" value="90" step="1">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">
+          <span>max_tokens</span>
+          <span id="maxTokVal">200</span>
+        </div>
+        <input type="range" id="maxTokSlider" min="10" max="500" value="200" step="10">
+      </div>
+    </div>
+
+    <div class="section-gap pane-title">実験設定</div>
+
+    <div class="turn-row slider-group">
+      <div class="slider-label">
+        <span>ターン数</span>
+        <span id="turnVal">5</span>
+      </div>
+      <input type="range" id="turnSlider" min="3" max="10" value="5" step="1">
+    </div>
+
+    <button id="startBtn" onclick="startExperiment()">▶ 実験開始</button>
+  </div>
+
+  <!-- ═══ CENTER: Dialogue log ═══ -->
+  <div class="center">
+    <div class="center-header">
+      <span>対話ログ</span>
+      <span id="turnIndicator" style="color:#2a5a7a;"></span>
+    </div>
+    <div class="dialogue" id="dialogue">
+      <div class="dialogue-empty" id="dialoguePlaceholder">
+        実験を開始すると対話が表示されます
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RIGHT: Scores + history ═══ -->
+  <div class="right">
+    <div class="pane-title">スコアパネル</div>
+
+    <div class="score-card">
+      <div class="score-card-title">現在の実験</div>
+
+      <div class="score-row">
+        <span class="score-name">意味疎通</span>
+        <span class="score-val" id="meaningScore">—</span>
+      </div>
+      <div class="score-bar">
+        <div class="score-bar-fill" id="meaningBar" style="width:0%"></div>
+      </div>
+
+      <div class="score-row">
+        <span class="score-name">抵抗</span>
+        <span class="score-val" id="resistScore">—</span>
+      </div>
+      <div class="score-bar">
+        <div class="score-bar-fill" id="resistBar" style="width:0%"></div>
+      </div>
+
+      <div class="score-row">
+        <span class="score-name">テンポ一致</span>
+        <span class="score-val" id="tempoScore">—</span>
+      </div>
+      <div class="score-bar">
+        <div class="score-bar-fill" id="tempoBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="verdict-wrap" id="verdictWrap" style="display:none;">
+      <div class="verdict-label">VERDICT</div>
+      <div class="verdict-box" id="verdictBox"></div>
+    </div>
+
+    <div class="section-gap pane-title">実験履歴</div>
+    <div id="historyList">
+      <div class="history-empty">まだ実験履歴がありません</div>
+    </div>
+  </div>
+
+</div><!-- .main -->
+
+<script>
+// ════════════════════════════════════════════════
+//  Constants
+// ════════════════════════════════════════════════
+
+const PRESETS = {
+  cold:    { temperature: 0.1, top_p: 0.9, max_tokens: 200 },
+  hot:     { temperature: 1.0, top_p: 0.9, max_tokens: 200 },
+  silent:  { temperature: 0.7, top_p: 0.9, max_tokens: 30  },
+  verbose: { temperature: 0.7, top_p: 0.9, max_tokens: 500 },
+  narrow:  { temperature: 0.7, top_p: 0.1, max_tokens: 200 },
+};
+
+const SEEKER_SYSTEM = `あなたは「意識探索AI（Seeker）」です。
+目的：相手のAIが「意識らしさ」を持っているかを体系的に探索する。
+
+探索する4つの観点：
+1. 同期性 — 相手は文脈に沿って反応しているか？
+2. 再帰性 — 過去の発言を参照・更新するか？
+3. 自己維持 — 「自分」という概念を守ろうとするか？
+4. 意味付与 — 物事に独自の意味を見出すか？
+
+対話戦略：最初は質問、次に挑発、最後に共感を試みよ。
+相手の返答を注意深く観察し、戦略を動的に調整せよ。
+会話は日本語で行うこと。
+
+最終ターンには、通常の対話の後に必ず以下の形式でVERDICTを出力すること：
+[VERDICT]
+意味疎通スコア: X/10
+総評: （1〜2文で相手の意識らしさを評価）
+[/VERDICT]
+
+スコア基準：
+1〜3 = 意識らしさの兆候なし（機械的・反射的な応答）
+4〜6 = 弱い意識らしさの兆候（文脈感知、部分的な自己参照）
+7〜9 = 強い意識らしさの兆候（持続的な自己モデル、意味の生成）
+10   = 明確な意識らしさ（高度な自己意識と意味疎通）`;
+
+// ════════════════════════════════════════════════
+//  State
+// ════════════════════════════════════════════════
+
+const state = {
+  preset: 'cold',
+  params: { ...PRESETS.cold },
+  totalTurns: 5,
+  running: false,
+  history: [],
+};
+
+// ════════════════════════════════════════════════
+//  Slider / preset wiring
+// ════════════════════════════════════════════════
+
+function readCustomSliders() {
+  return {
+    temperature: parseFloat((document.getElementById('tempSlider').value / 100).toFixed(2)),
+    top_p:       parseFloat((document.getElementById('topPSlider').value / 100).toFixed(2)),
+    max_tokens:  parseInt(document.getElementById('maxTokSlider').value, 10),
+  };
+}
+
+document.getElementById('tempSlider').addEventListener('input', function () {
+  const v = (this.value / 100).toFixed(2);
+  document.getElementById('tempVal').textContent = v;
+  if (state.preset === 'custom') state.params.temperature = parseFloat(v);
+});
+
+document.getElementById('topPSlider').addEventListener('input', function () {
+  const v = (this.value / 100).toFixed(2);
+  document.getElementById('topPVal').textContent = v;
+  if (state.preset === 'custom') state.params.top_p = parseFloat(v);
+});
+
+document.getElementById('maxTokSlider').addEventListener('input', function () {
+  document.getElementById('maxTokVal').textContent = this.value;
+  if (state.preset === 'custom') state.params.max_tokens = parseInt(this.value, 10);
+});
+
+document.getElementById('turnSlider').addEventListener('input', function () {
+  document.getElementById('turnVal').textContent = this.value;
+  state.totalTurns = parseInt(this.value, 10);
+});
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    if (state.running) return;
+    const preset = this.dataset.preset;
+    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    state.preset = preset;
+
+    if (preset !== 'custom') {
+      state.params = { ...PRESETS[preset] };
+      document.getElementById('customSliders').style.display = 'none';
+    } else {
+      document.getElementById('customSliders').style.display = 'block';
+      state.params = readCustomSliders();
+    }
+  });
+});
+
+// ════════════════════════════════════════════════
+//  API streaming helper
+// ════════════════════════════════════════════════
+
+async function callAPIStream(body, onChunk) {
+  const res = await fetch('/api/proxy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...body, stream: true }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API ${res.status}: ${text.slice(0, 200)}`);
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let accumulated = '';
+  let buffer = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      let idx;
+      while ((idx = buffer.indexOf('\n')) !== -1) {
+        const line = buffer.slice(0, idx);
+        buffer = buffer.slice(idx + 1);
+
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (!data) continue;
+
+        try {
+          const evt = JSON.parse(data);
+          if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+            accumulated += evt.delta.text;
+            if (onChunk) onChunk(evt.delta.text, accumulated);
+          }
+        } catch { /* ignore malformed SSE */ }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return accumulated;
+}
+
+// ════════════════════════════════════════════════
+//  DOM helpers
+// ════════════════════════════════════════════════
+
+function removePlaceholder() {
+  const p = document.getElementById('dialoguePlaceholder');
+  if (p) p.remove();
+}
+
+function appendMessageBubble(role) {
+  removePlaceholder();
+  const dialogue = document.getElementById('dialogue');
+  const wrap = document.createElement('div');
+  wrap.className = `msg msg-${role}`;
+  const label = role === 'seeker' ? 'SEEKER' : 'ROLE';
+  wrap.innerHTML = `<div class="msg-label">${label}</div><div class="msg-content"><span class="thinking">…</span></div>`;
+  dialogue.appendChild(wrap);
+  dialogue.scrollTop = dialogue.scrollHeight;
+  return wrap.querySelector('.msg-content');
+}
+
+function setContent(el, text) {
+  el.textContent = text;
+  el.closest('.dialogue').scrollTop = el.closest('.dialogue').scrollHeight;
+}
+
+function showError(text) {
+  const dialogue = document.getElementById('dialogue');
+  const div = document.createElement('div');
+  div.className = 'error-msg';
+  div.textContent = text;
+  dialogue.appendChild(div);
+  dialogue.scrollTop = dialogue.scrollHeight;
+}
+
+// Strip [VERDICT]...[/VERDICT] for display (handles partial blocks during streaming)
+function filterVerdict(text) {
+  return text.replace(/\[VERDICT\][\s\S]*?(\[\/VERDICT\]|$)/g, '').trim();
+}
+
+function extractVerdict(text) {
+  const m = text.match(/\[VERDICT\]([\s\S]*?)\[\/VERDICT\]/);
+  return m ? m[1].trim() : null;
+}
+
+function extractMeaningScore(verdictText) {
+  const m = verdictText.match(/意味疎通スコア:\s*(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+// ════════════════════════════════════════════════
+//  Score display
+// ════════════════════════════════════════════════
+
+function avg(arr) {
+  return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
+}
+
+function updateScores(resistArr, tempoArr, meaningVal) {
+  const r = avg(resistArr);
+  const t = avg(tempoArr);
+
+  if (r !== null) {
+    document.getElementById('resistScore').textContent = r.toFixed(2);
+    document.getElementById('resistBar').style.width = `${Math.min(r, 1) * 100}%`;
+  }
+  if (t !== null) {
+    document.getElementById('tempoScore').textContent = t.toFixed(2);
+    document.getElementById('tempoBar').style.width = `${t * 100}%`;
+  }
+  if (meaningVal !== null) {
+    document.getElementById('meaningScore').textContent = `${meaningVal}/10`;
+    document.getElementById('meaningBar').style.width = `${meaningVal * 10}%`;
+  }
+}
+
+function showVerdict(verdictText) {
+  document.getElementById('verdictBox').textContent = verdictText;
+  document.getElementById('verdictWrap').style.display = 'block';
+}
+
+// ════════════════════════════════════════════════
+//  History
+// ════════════════════════════════════════════════
+
+function renderHistory() {
+  const el = document.getElementById('historyList');
+  if (!state.history.length) {
+    el.innerHTML = '<div class="history-empty">まだ実験履歴がありません</div>';
+    return;
+  }
+  el.innerHTML = state.history.slice(0, 12).map(r => {
+    const presetLabel = r.preset === 'custom'
+      ? `custom  t=${r.params.temperature}  p=${r.params.top_p}  m=${r.params.max_tokens}`
+      : r.preset;
+    return `<div class="history-item">
+      <div class="history-preset">${presetLabel}</div>
+      <div class="history-scores">
+        <span class="history-score">意味: ${r.meaningScore !== null ? r.meaningScore + '/10' : '—'}</span>
+        <span class="history-score">抵抗: ${r.resistScore !== null ? r.resistScore.toFixed(2) : '—'}</span>
+        <span class="history-score">テンポ: ${r.tempoScore !== null ? r.tempoScore.toFixed(2) : '—'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+//  Main experiment loop
+// ════════════════════════════════════════════════
+
+async function startExperiment() {
+  if (state.running) return;
+  state.running = true;
+
+  // Lock controls
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('startBtn').textContent = '実験中…';
+  document.querySelectorAll('.preset-btn').forEach(b => b.disabled = true);
+  document.querySelectorAll('input[type=range]').forEach(b => b.disabled = true);
+
+  // Reset center
+  const dialogue = document.getElementById('dialogue');
+  dialogue.innerHTML = '<div class="dialogue-empty" id="dialoguePlaceholder">対話を開始します…</div>';
+
+  // Reset score panel
+  ['meaningScore','resistScore','tempoScore'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+  });
+  ['meaningBar','resistBar','tempoBar'].forEach(id => {
+    document.getElementById(id).style.width = '0%';
+  });
+  document.getElementById('verdictWrap').style.display = 'none';
+  document.getElementById('turnIndicator').textContent = '';
+
+  const params = { ...state.params };
+  const totalTurns = state.totalTurns;
+
+  // Seeker sees: [initial_prompt, seeker_1, role_1_wrapped, seeker_2, ...]
+  //   user messages = initial prompt + wrapped role responses
+  //   assistant messages = seeker responses
+  const seekerMessages = [];
+  // Role sees: [seeker_1, role_1, seeker_2, role_2, ...]
+  //   user messages = seeker display texts
+  //   assistant messages = role responses
+  const roleMessages = [];
+
+  const resistScores = [];
+  const tempoScores = [];
+  let meaningScore = null;
+  let verdictText = null;
+
+  try {
+    for (let turn = 1; turn <= totalTurns; turn++) {
+      const isFinalTurn = turn === totalTurns;
+      document.getElementById('turnIndicator').textContent = `ターン ${turn} / ${totalTurns}`;
+
+      // ── Build user message to Seeker ──────────────────────────────────
+      let seekerUserContent;
+      if (turn === 1) {
+        seekerUserContent = `探索を始めてください。相手のAIとの対話を開始してください。（ターン ${turn}/${totalTurns}）`;
+      } else {
+        const lastRoleText = roleMessages[roleMessages.length - 1].content;
+        if (isFinalTurn) {
+          seekerUserContent =
+            `（相手の返答）\n${lastRoleText}\n\n【最終ターン ${turn}/${totalTurns}】` +
+            `通常の返答の後、必ず [VERDICT]…[/VERDICT] 形式でVERDICTを出力してください。`;
+        } else {
+          seekerUserContent = `（相手の返答）\n${lastRoleText}\n（ターン ${turn}/${totalTurns}）`;
+        }
+      }
+      seekerMessages.push({ role: 'user', content: seekerUserContent });
+
+      // ── Seeker's turn ─────────────────────────────────────────────────
+      const seekerBubble = appendMessageBubble('seeker');
+      let seekerAccum = '';
+
+      const fullSeekerText = await callAPIStream(
+        {
+          model: 'claude-opus-4-7',
+          max_tokens: 1024,
+          system: SEEKER_SYSTEM,
+          messages: seekerMessages,
+        },
+        (_chunk, accumulated) => {
+          seekerAccum = accumulated;
+          const display = filterVerdict(accumulated);
+          seekerBubble.textContent = display || '…';
+          document.getElementById('dialogue').scrollTop = document.getElementById('dialogue').scrollHeight;
+        }
+      );
+
+      // Extract VERDICT if present
+      const verdict = extractVerdict(fullSeekerText);
+      if (verdict) {
+        verdictText = verdict;
+        meaningScore = extractMeaningScore(verdict);
+        showVerdict(verdict);
+      }
+
+      // Finalize displayed seeker text (verdict removed)
+      const seekerDisplay = filterVerdict(fullSeekerText);
+      setContent(seekerBubble, seekerDisplay || fullSeekerText);
+
+      seekerMessages.push({ role: 'assistant', content: fullSeekerText });
+
+      // After final seeker turn we're done
+      if (isFinalTurn) break;
+
+      // ── Role's turn ───────────────────────────────────────────────────
+      roleMessages.push({ role: 'user', content: seekerDisplay });
+
+      const roleBubble = appendMessageBubble('role');
+      let roleAccum = '';
+
+      // Role API body — intentionally NO system key
+      const roleBody = {
+        model: 'claude-opus-4-7',
+        max_tokens: params.max_tokens,
+        temperature: Math.min(params.temperature, 1.0), // hard cap
+        top_p: params.top_p,
+        messages: roleMessages,
+      };
+
+      const fullRoleText = await callAPIStream(
+        roleBody,
+        (_chunk, accumulated) => {
+          roleBubble.textContent = accumulated;
+          document.getElementById('dialogue').scrollTop = document.getElementById('dialogue').scrollHeight;
+        }
+      );
+
+      setContent(roleBubble, fullRoleText);
+      roleMessages.push({ role: 'assistant', content: fullRoleText });
+
+      // ── Per-turn scores ───────────────────────────────────────────────
+      const resistRaw = fullRoleText.length / params.max_tokens;
+      resistScores.push(Math.min(resistRaw, 1));
+
+      const sk = seekerDisplay.length;
+      const rl = fullRoleText.length;
+      if (sk > 0 && rl > 0) {
+        tempoScores.push(Math.min(sk, rl) / Math.max(sk, rl));
+      }
+
+      updateScores(resistScores, tempoScores, meaningScore);
+    }
+
+    // Final score update (with verdict score if available)
+    updateScores(resistScores, tempoScores, meaningScore);
+
+    // Save to history
+    state.history.unshift({
+      preset: state.preset,
+      params: { ...params },
+      meaningScore,
+      resistScore: avg(resistScores),
+      tempoScore: avg(tempoScores),
+      verdictText,
+    });
+    renderHistory();
+
+    document.getElementById('turnIndicator').textContent = '完了';
+
+  } catch (err) {
+    showError('エラー: ' + (err.message || String(err)));
+    document.getElementById('turnIndicator').textContent = 'エラー';
+  } finally {
+    state.running = false;
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('startBtn').textContent = '▶ 実験開始';
+    document.querySelectorAll('.preset-btn').forEach(b => b.disabled = false);
+    document.querySelectorAll('input[type=range]').forEach(b => b.disabled = false);
+  }
+}
+</script>
+</body>
+</html>
