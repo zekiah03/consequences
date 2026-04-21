@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+
+.env
+.env.local
+.env.*.local
+
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+drizzle/.snapshot
+drizzle/meta/_journal.json
